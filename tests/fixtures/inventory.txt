@@ -1,0 +1,6 @@
+SKU|Item|Qty|Unit Price|Last Restocked|In Stock
+001-A|Steel bolts M8|1200|2.50|2026-09-01|true
+002-B|Washer 10mm|3400|0.75|2026-09-12|true
+003-C|Hex nut M8|0|1.10|2026-07-22|false
+004-D|Anchor 12mm|150|14.00|2026-08-30|true
+005-E|Cable tie 200mm|5000|0.40|2026-09-28|true

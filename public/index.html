@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Text to Excel Converter</title>
+  <meta name="description" content="Convert CSV, TSV, pipe, semicolon or plain text into a formatted Excel (.xlsx) file. Free, fast and private: everything runs in your browser.">
+  <meta name="theme-color" content="#1d6b47" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0e1411" media="(prefers-color-scheme: dark)">
+  <meta property="og:title" content="Text to Excel Converter">
+  <meta property="og:description" content="Paste or upload text data and download a clean, formatted Excel workbook. Processed locally in your browser.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="assets/fonts/ibm-plex-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <script src="assets/js/theme.js"></script>
+</head>
+<body>
+<a href="#main" class="sr focus:not-sr-only">Skip to content</a>
+<div class="mx-auto flex max-w-app flex-col gap-4 px-4 pb-28 pt-4 sm:px-5 sm:pb-12 sm:pt-5">
+  <header class="flex flex-wrap items-center justify-between gap-4">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2.5"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>
+      </div>
+      <div>
+        <h1>Text to Excel Converter</h1>
+        <p>Convert your text data into a structured Excel spreadsheet</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2.5">
+      <span id="status" class="status" data-state="ready" role="status" aria-live="polite"><i></i><span id="statusText">Ready</span></span>
+      <button id="themeBtn" class="btn" type="button" aria-label="Toggle dark mode">
+        <svg id="themeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <span id="themeLabel">Dark mode</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="privacy">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+    <span>Your data is processed locally in your browser and is not uploaded to a server.</span>
+  </div>
+
+  <div class="flex flex-wrap gap-2" role="toolbar" aria-label="Quick actions">
+    <button class="btn quick-btn" id="qaSample" type="button">Sample data</button>
+    <button class="btn quick-btn" id="qaClear" type="button">Clear all</button>
+    <button class="btn quick-btn" id="qaCopy" type="button">Copy data</button>
+    <button class="btn primary quick-btn" id="qaDownload" type="button">Download Excel</button>
+    <button class="btn quick-btn" id="qaReset" type="button">Reset settings</button>
+  </div>
+
+  <div id="alerts" class="flex flex-col gap-2 empty:hidden" aria-live="assertive"></div>
+
+  <div class="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
+    <main id="main" class="flex min-w-0 flex-col gap-4">
+      <section class="card" aria-labelledby="inputTitle">
+        <div class="card-head">
+          <h2 id="inputTitle">Input text</h2>
+          <div class="toolbar">
+            <button class="btn sm" id="pasteBtn" type="button">Paste</button>
+            <button class="btn sm" id="sampleBtn" type="button">Sample data</button>
+            <button class="btn sm" id="clearBtn" type="button">Clear</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="dropzone" id="dropzone">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+            <strong>Drag &amp; drop your file here</strong>
+            <span class="or">or</span>
+            <label class="btn" for="fileInput">Choose file</label>
+            <input type="file" id="fileInput" accept=".txt,.csv,.tsv,.log,text/plain,text/csv,text/tab-separated-values" class="sr">
+            <span class="formats">.txt · .csv · .tsv · .log</span>
+            <span id="fileChip" class="file-chip" hidden><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg><span id="fileName"></span></span>
+          </div>
+          <label for="textIn" class="sr">Text data</label>
+          <textarea id="textIn" spellcheck="false" autocomplete="off" placeholder="Name,Email,Phone,City
+John,john@example.com,9876543210,Ahmedabad
+Ali,ali@example.com,9876543211,Patan
+Rahul,rahul@example.com,9876543212,Siddhpur"></textarea>
+          <div class="meta-row">
+            <span><b id="charCount">0</b> characters</span>
+            <span><b id="lineCount">0</b> lines</span>
+            <span id="delimInfo">Detected delimiter: <b>—</b></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-5" aria-label="Statistics">
+        <div class="stat"><div class="label">Rows</div><div class="value" id="stRows">—</div></div>
+        <div class="stat"><div class="label">Columns</div><div class="value" id="stCols">—</div></div>
+        <div class="stat" id="stEmptyBox"><div class="label">Empty rows</div><div class="value" id="stEmpty">—</div></div>
+        <div class="stat" id="stDupBox"><div class="label">Duplicate rows</div><div class="value" id="stDup">—</div></div>
+        <div class="stat"><div class="label">Data size</div><div class="value" id="stSize">—</div></div>
+      </section>
+
+      <section class="card" aria-labelledby="previewTitle">
+        <div class="card-head">
+          <h2 id="previewTitle">Data preview</h2>
+          <span class="dims" id="dims">0 rows × 0 columns</span>
+        </div>
+        <div id="previewArea"></div>
+        <div class="pager" id="pager" hidden>
+          <span id="pageInfo"></span>
+          <div class="ctl">
+            <label for="pageSize" class="sr">Rows per page</label>
+            <select id="pageSize" class="select select-sm">
+              <option value="25">25 / page</option>
+              <option value="50">50 / page</option>
+              <option value="100">100 / page</option>
+            </select>
+            <button class="btn sm" id="firstPage" type="button" aria-label="First page">«</button>
+            <button class="btn sm" id="prevPage" type="button">Prev</button>
+            <button class="btn sm" id="nextPage" type="button">Next</button>
+            <button class="btn sm" id="lastPage" type="button" aria-label="Last page">»</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="colsTitle">
+        <div class="card-head">
+          <div>
+            <h2 id="colsTitle">Columns</h2>
+            <div class="sub">Rename, reorder, remove or retype columns before export.</div>
+          </div>
+          <button class="btn sm" id="restoreCols" type="button">Restore original columns</button>
+        </div>
+        <div class="col-list" id="colList"></div>
+        <form class="add-col" id="addColForm">
+          <label for="newColName" class="sr">New column name</label>
+          <input class="input" id="newColName" placeholder="New column name">
+          <label for="newColDefault" class="sr">Value for every row</label>
+          <input class="input" id="newColDefault" placeholder="Value for every row (optional)">
+          <button class="btn" type="submit">Add column</button>
+        </form>
+      </section>
+    </main>
+
+    <aside class="flex flex-col gap-3" aria-label="Settings">
+      <div class="convert-box z-[5] lg:sticky lg:top-3">
+        <button class="btn primary big" id="convertBtn" type="button">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5"/><path d="M5 20h14"/></svg>
+          Convert &amp; Download Excel
+        </button>
+        <p class="summary-line" id="exportSummary">Paste or upload data to begin.</p>
+        <ol class="progress" id="progress" hidden>
+          <li data-step="0"><i></i>Preparing data…</li>
+          <li data-step="1"><i></i>Cleaning data…</li>
+          <li data-step="2"><i></i>Creating Excel…</li>
+          <li data-step="3"><i></i>Formatting workbook…</li>
+          <li data-step="4"><i></i>Download ready</li>
+        </ol>
+      </div>
+
+      <details class="panel" open>
+        <summary>Parsing</summary>
+        <div class="panel-body">
+          <div class="field">
+            <label for="delimSel">Delimiter</label>
+            <select id="delimSel" class="select">
+              <option value="auto">Auto detect</option>
+              <option value="comma">Comma (,)</option>
+              <option value="tab">Tab (\t)</option>
+              <option value="semicolon">Semicolon (;)</option>
+              <option value="pipe">Pipe (|)</option>
+              <option value="colon">Colon (:)</option>
+              <option value="none">None (one column)</option>
+              <option value="custom">Custom…</option>
+            </select>
+          </div>
+          <div class="field" id="customWrap" hidden>
+            <label for="customDelim">Custom delimiter</label>
+            <input id="customDelim" class="input mono" maxlength="10" placeholder="e.g. ~ or ||">
+          </div>
+          <label class="switch"><span>First row contains column headers</span><input type="checkbox" id="optHeader" checked></label>
+          <div class="field">
+            <label for="dateOrder">Dates like 06/10/2026 mean</label>
+            <select id="dateOrder" class="select">
+              <option value="dmy">Day / Month / Year (6 Oct 2026)</option>
+              <option value="mdy">Month / Day / Year (Jun 10 2026)</option>
+            </select>
+          </div>
+        </div>
+      </details>
+
+      <details class="panel" open>
+        <summary>Data cleaning</summary>
+        <div class="panel-body switch-list">
+          <label class="switch"><span>Remove empty rows</span><input type="checkbox" id="clEmptyRows" checked></label>
+          <label class="switch"><span>Remove empty columns</span><input type="checkbox" id="clEmptyCols" checked></label>
+          <label class="switch"><span>Trim whitespace</span><input type="checkbox" id="clTrim" checked></label>
+          <label class="switch"><span>Remove duplicate rows</span><input type="checkbox" id="clDupes"></label>
+          <label class="switch"><span>Normalize line breaks</span><input type="checkbox" id="clNormalize" checked></label>
+          <label class="switch"><span>Detect numbers automatically</span><input type="checkbox" id="clNumbers" checked></label>
+          <label class="switch"><span>Detect dates automatically</span><input type="checkbox" id="clDates" checked></label>
+          <p class="hint">Phone numbers, PIN codes, IDs and values with leading zeros stay as text.</p>
+        </div>
+      </details>
+
+      <details class="panel" open>
+        <summary>Excel settings</summary>
+        <div class="panel-body">
+          <div class="field">
+            <label for="sheetName">Worksheet name</label>
+            <input id="sheetName" class="input" value="Sheet1" maxlength="31">
+          </div>
+          <div class="field">
+            <label for="fileNameIn">File name</label>
+            <input id="fileNameIn" class="input mono" value="converted-data.xlsx">
+          </div>
+          <div class="switch-list">
+            <label class="switch"><span>Bold header</span><input type="checkbox" id="fxBold" checked></label>
+            <label class="switch"><span>Freeze header row</span><input type="checkbox" id="fxFreeze" checked></label>
+            <label class="switch"><span>Auto column width</span><input type="checkbox" id="fxWidth" checked></label>
+            <label class="switch"><span>Enable filters</span><input type="checkbox" id="fxFilter" checked></label>
+            <label class="switch"><span>Format as Excel Table</span><input type="checkbox" id="fxTable"></label>
+            <label class="switch"><span>Alternate row styling</span><input type="checkbox" id="fxAlt" checked></label>
+          </div>
+          <p class="hint" id="tableHint" hidden>Excel Tables include their own filter buttons and banded rows.</p>
+        </div>
+      </details>
+
+      <details class="panel" id="splitPanel">
+        <summary>Multiple sheets</summary>
+        <div class="panel-body">
+          <div class="seg" role="radiogroup" aria-label="Split mode">
+            <label><input type="radio" name="splitMode" value="none" checked>One sheet</label>
+            <label><input type="radio" name="splitMode" value="rows">By rows</label>
+            <label><input type="radio" name="splitMode" value="column">By column</label>
+          </div>
+          <div class="field" id="splitRowsWrap" hidden>
+            <label for="splitRows">Rows per sheet</label>
+            <input id="splitRows" class="input" type="number" min="1" step="1" value="1000">
+          </div>
+          <div class="field" id="splitColWrap" hidden>
+            <label for="splitCol">One sheet per value of</label>
+            <select id="splitCol" class="select"></select>
+          </div>
+          <p class="hint" id="splitHint">All rows go into a single worksheet.</p>
+        </div>
+      </details>
+    </aside>
+  </div>
+  <footer class="site-footer flex flex-wrap items-center justify-between gap-2 border-t border-[color:var(--line)] pt-4">
+    <span>Text to Excel Converter · Works offline once loaded · No data leaves your device</span>
+    <a href="https://github.com/mohammadali10-12/text-to-excel-converter" rel="noopener">Source on GitHub</a>
+  </footer>
+</div>
+
+<div class="mobile-bar fixed inset-x-0 bottom-0 z-10 sm:hidden"><button class="btn primary big" id="mobileConvert" type="button">Convert &amp; Download Excel</button></div>
+
+<noscript><p class="p-4 text-center">Text to Excel Converter needs JavaScript to read and convert your data in the browser.</p></noscript>
+<script src="assets/vendor/xlsx-js-style-1.2.0.min.js" defer></script>
+<script src="assets/vendor/jszip-3.10.1.min.js" defer></script>
+<script src="assets/js/core.js" defer></script>
+<script src="assets/js/app.js" defer></script>
+</body>
+</html>
