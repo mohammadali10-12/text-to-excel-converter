@@ -12,7 +12,7 @@
     "serve": "npx --yes serve public -l 3000"
   },
   "devDependencies": {
-    "tailwindcss": "3.4.17"
+    "tailwindcss": "4.3.3"
   },
   "engines": {
     "node": ">=18"
